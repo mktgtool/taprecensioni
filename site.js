@@ -3,7 +3,7 @@
   // Incollare qui i tre Payment Link di Stripe e l'ID del pixel Meta.
   var CONFIG = {
     links: { uno: '', due: '', pack: '' },
-    metaPixelId: ''
+    metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
   var VALUES = { uno: 30, due: 50, pack: 120 };
