@@ -90,24 +90,64 @@
   });
   update();
 
+  // Fattura: i campi obbligatori dipendono da Partita IVA / privato
+  function invoice() {
+    var t = form.elements.invType.value;
+    form.querySelectorAll('[data-inv]').forEach(function (box) {
+      var on = box.dataset.inv === t;
+      box.hidden = !on;
+      box.querySelectorAll('input').forEach(function (i) { i.disabled = !on; i.required = on && i.hasAttribute('data-req'); });
+    });
+  }
+  form.querySelectorAll('input[name=invType]').forEach(function (r) { r.addEventListener('change', invoice); });
+  invoice();
+
+  var FIELDS = ['firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'province', 'gmaps', 'invType', 'company', 'vat', 'sdi', 'cf'];
+  function customer() {
+    var c = {};
+    FIELDS.forEach(function (k) { var el = form.elements[k]; c[k] = el && !el.disabled ? String(el.value).trim() : ''; });
+    c.province = c.province.toUpperCase();
+    return c;
+  }
+  var cid = store('sessionStorage', 'tap-cid');
+  if (!cid) { cid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); store('sessionStorage', 'tap-cid', cid); }
+  // Registra il checkout iniziato appena c'e' un'email valida (per ricontattare chi non completa).
+  function snapshot() {
+    var em = form.elements.email;
+    if (!em.value || !em.checkValidity()) return;
+    var key = selected().value;
+    fetch('/api/public/abandoned', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      body: JSON.stringify({ id: cid, variant: key, qty: key === 'pack' ? count() : 1, customer: customer() })
+    }).catch(function () { /* non bloccante */ });
+  }
+  form.addEventListener('change', function (e) { if (e.target.name !== 'variant') snapshot(); });
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (!form.checkValidity()) { form.reportValidity(); return; }
     var key = selected().value;
     store('sessionStorage', 'tap-variant', key);
     store('sessionStorage', 'tap-value', String(amount()));
     if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 2 : 1) });
     var btn = form.querySelector('[type=submit]');
-    var whatsapp = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + '). La mia attività su Google Maps è: ');
+    var whatsapp = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + ').');
     btn.disabled = true; btn.textContent = 'Un attimo…';
-    // Il server crea la pagina di pagamento Stripe con l'importo esatto del carrello.
+    function reset() { btn.disabled = false; btn.textContent = 'Completa ordine'; }
+    snapshot();
+    // Il server crea la pagina di pagamento Stripe con importo, quantità e dati del cliente.
     fetch('/api/public/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ variant: key, qty: key === 'pack' ? count() : 1 })
-    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
-      window.location.href = j && j.url ? j.url : whatsapp;
+      body: JSON.stringify({ variant: key, qty: key === 'pack' ? count() : 1, cid: cid, customer: customer() })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, j: j }; });
+    }).then(function (res) {
+      if (res.j.url) { window.location.href = res.j.url; return; }
+      if (res.status === 400) { reset(); alert(res.j.error || 'Controlla i dati inseriti.'); return; }
+      window.location.href = whatsapp;
     }).catch(function () { window.location.href = whatsapp; })
-      .finally(function () { setTimeout(function () { btn.disabled = false; btn.textContent = 'Ordina ora'; }, 4000); });
+      .finally(function () { setTimeout(reset, 5000); });
   });
 
   var gal = document.querySelector('[data-gallery]'), dots = document.querySelector('[data-dots]');
