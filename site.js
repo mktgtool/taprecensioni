@@ -72,7 +72,7 @@
     if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: VALUES[key] });
     var link = CONFIG.links[key];
     if (link) { window.location.href = link + (link.indexOf('?') < 0 ? '?' : '&') + 'locale=it'; return; }
-    window.location.href = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + NAMES[key] + ' TapRecensioni. La mia attività su Google Maps è: ');
+    window.location.href = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + NAMES[key] + ' tappala. La mia attività su Google Maps è: ');
   });
 
   var gal = document.querySelector('[data-gallery]'), dots = document.querySelector('[data-dots]');

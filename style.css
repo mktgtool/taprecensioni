@@ -1,6 +1,6 @@
 
   #tap {
-    --navy: #0B1F4D; --blue: #2D5BFF; --yellow: #F5C518;
+    --navy: #0B1F4D; --blue: #2447E0; --yellow: #FFD43B;
     --ink: #0B1F4D; --muted: #4A5878; --line: #DCE3F2; --bg-soft: #F3F6FD;
     font-family: 'Inter', system-ui, sans-serif; color: var(--ink); line-height: 1.5; background: var(--bg-soft);
   }
@@ -151,7 +151,7 @@
   .tap-wa-float svg { width: 30px; height: 30px; }
   @media (min-width: 900px) { .tap-wa-float { bottom: 24px; } }
 
-  .tapi { --navy:#0B1F4D; --blue:#2D5BFF; --yellow:#F5C518; --muted:#4A5878; --line:#DCE3F2;
+  .tapi { --navy:#0B1F4D; --blue:#2447E0; --yellow:#FFD43B; --muted:#4A5878; --line:#DCE3F2;
     font-family: Inter, system-ui, -apple-system, sans-serif; color: var(--navy); background: #F3F6FD; padding: 48px 0 96px; }
   .tapi *, .tapi *::before, .tapi *::after { box-sizing: border-box; }
   .tapi__wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
@@ -184,11 +184,16 @@ body { margin: 0; background: #F3F6FD; }
 .cb[hidden] { display: none; }
 .cb h2 { font-size: 16px; margin: 0 0 6px; }
 .cb p { font-size: 14px; line-height: 1.45; margin: 0 0 12px; color: #4A5878; }
-.cb a { color: #2D5BFF; }
+.cb a { color: #2447E0; }
 .cb__b { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cb__b button { font: 700 15px Inter, system-ui, sans-serif; padding: 12px; border-radius: 10px; border: 2px solid #0B1F4D; background: #fff; color: #0B1F4D; cursor: pointer; }
 .legal { font-family: Inter, system-ui, sans-serif; color: #0B1F4D; max-width: 760px; margin: 0 auto; padding: 32px 16px 72px; line-height: 1.6; }
-.legal__back { color: #2D5BFF; font-weight: 600; text-decoration: none; }
+.legal__back { color: #2447E0; font-weight: 600; text-decoration: none; }
 .legal h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.15; letter-spacing: -.02em; margin: 18px 0 20px; }
 .legal h2 { font-size: 19px; margin: 26px 0 6px; }
 .legal p, .legal li { color: #4A5878; }
+.tp-top { background: #fff; border-bottom: 1px solid #DCE3F2; }
+.tp-top a { max-width: 1160px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 10px; text-decoration: none; color: #1E3FD6; font: 800 26px/1 Poppins, Inter, sans-serif; letter-spacing: -.02em; }
+.tp-top img { width: 40px; height: 40px; display: block; }
+.tap-payoff__h, .tap-h1, .tap-h2, .tapi__h2, .legal h1, .tap-price__v { font-family: Poppins, Inter, system-ui, sans-serif; }
+.tap-payoff__h { letter-spacing: -.025em; }
