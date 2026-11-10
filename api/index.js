@@ -193,8 +193,15 @@ function discountAmount(d, sub) {
   return d.type === 'percent' ? Math.round(sub * d.value) / 100 : Math.min(d.value, sub);
 }
 // Crea la pagina di pagamento Stripe con l'importo esatto del carrello.
+// Indirizzo del sito da cui parte l'ordine: dominio tappala oppure una versione di prova su Vercel.
+function siteOf(req) {
+  const h = String(req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase();
+  if (/^(www\.)?tappala\.(com|it)$/.test(h) || /^[a-z0-9-]+\.vercel\.app$/.test(h)) return 'https://' + h;
+  return SITE;
+}
 async function publicCheckout(req, res) {
   if (!STRIPE_KEY) return send(res, 503, { error: 'Pagamenti non ancora attivi' });
+  const site = siteOf(req);
   const b = body(req);
   const p = await product();
   const v = (p.variants || []).find((x) => x.id === b.variant);
@@ -237,8 +244,8 @@ async function publicCheckout(req, res) {
     'metadata[qty]': String(qty),
     'metadata[code]': disc ? code : '',
     'metadata[cid]': str(b.cid, 40),
-    success_url: SITE + '/grazie?session_id={CHECKOUT_SESSION_ID}',
-    cancel_url: SITE + '/#tap-form'
+    success_url: site + '/grazie?session_id={CHECKOUT_SESSION_ID}',
+    cancel_url: site + '/#tap-form'
   };
   CUSTOMER_FIELDS.forEach((k) => { if (c[k]) params['metadata[c_' + k + ']'] = c[k]; });
   const s = await stripe('checkout/sessions', params);
