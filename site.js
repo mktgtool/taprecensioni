@@ -6,8 +6,8 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { uno: 30, due: 50, pack: 120 };
-  var NAMES = { uno: '1 card', due: '2 card', pack: '5 o più card' };
+  var VALUES = { uno: 30, due: 50, pack: 72 };
+  var NAMES = { uno: '1 card', due: '2 card', pack: '3 o più card' };
 
   function store(kind, key, val) {
     try {
@@ -28,7 +28,7 @@
     var page = document.body.dataset.page;
     if (page === 'grazie') {
       var k = store('sessionStorage', 'tap-variant');
-      window.fbq('track', 'Purchase', { currency: 'EUR', value: VALUES[k] || 30 });
+      window.fbq('track', 'Purchase', { currency: 'EUR', value: parseFloat(store('sessionStorage', 'tap-value')) || VALUES[k] || 30 });
     }
   }
   var banner = document.getElementById('cb');
@@ -53,26 +53,43 @@
   var fmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
   var radios = form.querySelectorAll('input[name="variant"]');
   var totals = document.querySelectorAll('[data-total]');
-  var note = form.querySelector('[data-pack-note]');
+  var qtyBox = form.querySelector('[data-qty]');
+  var qty = form.querySelector('#tap-qty-input');
+  var MIN = 3, MAX = 500;
   function selected() { return form.querySelector('input[name="variant"]:checked'); }
+  function count() { return Math.min(MAX, Math.max(MIN, parseInt(qty.value, 10) || MIN)); }
+  function amount() {
+    var r = selected();
+    return r.value === 'pack' ? +r.dataset.price * count() : +r.dataset.price;
+  }
+  function label() {
+    var r = selected();
+    return r.value === 'pack' ? count() + ' card' : NAMES[r.value];
+  }
   function update() {
     var r = selected();
     radios.forEach(function (x) { x.closest('.tap-variant').classList.toggle('is-active', x.checked); });
-    var total = fmt.format(+r.dataset.price);
-    totals.forEach(function (t) { t.textContent = r.value === 'pack' ? 'da ' + total : total; });
-    note.hidden = r.value !== 'pack';
+    var total = fmt.format(amount());
+    totals.forEach(function (t) { t.textContent = total; });
+    qtyBox.hidden = r.value !== 'pack';
   }
   radios.forEach(function (r) { r.addEventListener('change', update); });
+  qty.addEventListener('input', update);
+  qty.addEventListener('blur', function () { qty.value = count(); update(); });
+  form.querySelectorAll('[data-step]').forEach(function (b) {
+    b.addEventListener('click', function () { qty.value = Math.min(MAX, Math.max(MIN, count() + +b.dataset.step)); update(); });
+  });
   update();
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var key = selected().value;
     store('sessionStorage', 'tap-variant', key);
-    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: VALUES[key] });
+    store('sessionStorage', 'tap-value', String(amount()));
+    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 2 : 1) });
     var link = CONFIG.links[key];
     if (link) { window.location.href = link + (link.indexOf('?') < 0 ? '?' : '&') + 'locale=it'; return; }
-    window.location.href = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + NAMES[key] + ' tappala. La mia attività su Google Maps è: ');
+    window.location.href = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + '). La mia attività su Google Maps è: ');
   });
 
   var gal = document.querySelector('[data-gallery]'), dots = document.querySelector('[data-dots]');

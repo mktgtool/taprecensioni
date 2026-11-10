@@ -197,3 +197,7 @@ body { margin: 0; background: #F3F6FD; }
 .tp-top img { width: 40px; height: 40px; display: block; }
 .tap-payoff__h, .tap-h1, .tap-h2, .tapi__h2, .legal h1, .tap-price__v { font-family: Poppins, Inter, system-ui, sans-serif; }
 .tap-payoff__h { letter-spacing: -.025em; }
+.tp-foot { background: #0B1F4D; color: #C9D3EE; font: 14px/1.6 Inter, system-ui, sans-serif; text-align: center; padding: 28px 16px 104px; }
+.tp-foot p { margin: 0 0 6px; }
+.tp-foot strong, .tp-foot a { color: #fff; }
+@media (min-width: 900px) { .tp-foot { padding-bottom: 40px; } }

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Checkout · tappala</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap">
+<style>
+  :root { --navy:#0B1F4D; --blue:#2447E0; --yellow:#FFD43B; --muted:#5A6785; --line:#D9DFEC; --soft:#F5F7FB; --err:#C5281C; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 Inter, system-ui, sans-serif; color: var(--navy); background: #fff; }
+  .note { background: var(--yellow); text-align: center; font-size: 13px; font-weight: 600; padding: 8px 16px; }
+  .top { border-bottom: 1px solid var(--line); padding: 18px 16px; }
+  .top div { max-width: 1040px; margin: 0 auto; font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
+  .grid { display: grid; grid-template-columns: 1fr; }
+  .form { padding: 24px 16px 48px; order: 2; }
+  .side { background: var(--soft); border-bottom: 1px solid var(--line); padding: 20px 16px; order: 1; }
+  .in { max-width: 520px; margin: 0 auto; }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: minmax(0, 55fr) minmax(0, 45fr); min-height: calc(100vh - 64px); }
+    .form { order: 1; padding: 32px 40px 64px; }
+    .form .in { margin: 0 0 0 auto; }
+    .side { order: 2; border-bottom: 0; border-left: 1px solid var(--line); padding: 32px 40px; }
+    .side .in { margin: 0; position: sticky; top: 32px; max-width: 420px; }
+  }
+  h2 { font-size: 20px; margin: 26px 0 12px; letter-spacing: -.01em; }
+  h2:first-child { margin-top: 0; }
+  input[type=text], input[type=email], input[type=tel], input[type=number] { width: 100%; min-width: 0; font: 16px Inter, sans-serif; color: var(--navy); padding: 13px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  input:focus { outline: 2px solid var(--blue); outline-offset: -1px; border-color: var(--blue); }
+  label.f { display: block; margin-bottom: 10px; }
+  label.f span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .r3 { display: grid; grid-template-columns: 1fr 1.5fr .8fr; gap: 10px; }
+  .box { border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; gap: 12px; }
+  .seg { display: inline-flex; background: var(--soft); border-radius: 8px; padding: 4px; margin-bottom: 12px; }
+  .seg label { padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; }
+  .seg label:has(input:checked) { background: #fff; color: var(--blue); box-shadow: 0 1px 3px rgba(11,31,77,.18); }
+  .pay { border: 1px dashed var(--line); border-radius: 8px; padding: 18px; color: var(--muted); font-size: 14px; background: var(--soft); }
+  .btn { width: 100%; margin-top: 18px; padding: 17px; border: 0; border-radius: 8px; background: var(--blue); color: #fff; font: 700 17px Inter, sans-serif; cursor: pointer; }
+  .btn2 { padding: 0 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: 600 14px Inter, sans-serif; color: var(--navy); cursor: pointer; }
+  .item { display: flex; gap: 12px; align-items: center; }
+  .item img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line); }
+  .item div { flex: 1; min-width: 0; }
+  .item small { color: var(--muted); display: block; }
+  .qty { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; }
+  .qty input { width: 76px; padding: 8px; text-align: center; }
+  .code { display: flex; gap: 8px; margin: 16px 0 4px; }
+  .msg { font-size: 13px; min-height: 18px; color: var(--err); }
+  .msg.ok { color: #127A43; }
+  .row { display: flex; justify-content: space-between; margin: 7px 0; }
+  .tot { font-size: 21px; font-weight: 800; margin-top: 12px; align-items: baseline; }
+  .tot small { font-size: 12px; font-weight: 500; color: var(--muted); margin-right: 6px; }
+  .legal { font-size: 13px; color: var(--muted); margin-top: 14px; }
+  .legal a { color: var(--blue); }
+  .done { max-width: 520px; margin: 64px auto; padding: 0 16px; text-align: center; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="note">Anteprima del checkout: nessun pagamento reale viene eseguito.</div>
+<header class="top"><div>tappala</div></header>
+
+<div class="grid" id="main">
+  <main class="form"><div class="in">
+    <form id="f">
+      <h2>Contatti</h2>
+      <label class="f"><span>Email *</span><input type="email" name="email" autocomplete="email" required></label>
+      <label class="f"><span id="phoneL">Telefono (per il corriere)</span><input type="tel" name="phone" autocomplete="tel"></label>
+
+      <h2>La tua attività</h2>
+      <label class="f"><span>Nome attività su Google Maps o link della scheda *</span><input type="text" name="gmaps" required minlength="3"></label>
+
+      <h2>Consegna</h2>
+      <div class="r2">
+        <label class="f"><span>Nome *</span><input type="text" name="firstName" autocomplete="given-name" required></label>
+        <label class="f"><span>Cognome *</span><input type="text" name="lastName" autocomplete="family-name" required></label>
+      </div>
+      <label class="f"><span>Indirizzo e numero civico *</span><input type="text" name="address" autocomplete="street-address" required></label>
+      <div class="r3">
+        <label class="f"><span>CAP *</span><input type="text" name="zip" inputmode="numeric" pattern="[0-9]{5}" autocomplete="postal-code" required></label>
+        <label class="f"><span>Città *</span><input type="text" name="city" autocomplete="address-level2" required></label>
+        <label class="f"><span>Prov. *</span><input type="text" name="province" maxlength="2" pattern="[A-Za-z]{2}" autocomplete="address-level1" required></label>
+      </div>
+
+      <h2>Metodo di spedizione</h2>
+      <div class="box"><span>12/24h in Sardegna, 24/48h nel resto d'Italia</span><strong>Inclusa</strong></div>
+
+      <h2>Dati per la fattura</h2>
+      <div class="seg" role="radiogroup" aria-label="Tipo di cliente">
+        <label><input type="radio" name="invType" value="azienda" checked> Partita IVA</label>
+        <label><input type="radio" name="invType" value="privato"> Privato</label>
+      </div>
+      <div data-inv="azienda">
+        <label class="f"><span>Ragione sociale *</span><input type="text" name="company"></label>
+        <div class="r2">
+          <label class="f"><span>Partita IVA *</span><input type="text" name="vat" inputmode="numeric" pattern="[0-9]{11}"></label>
+          <label class="f"><span>Codice SDI o PEC *</span><input type="text" name="sdi"></label>
+        </div>
+      </div>
+      <div data-inv="privato" hidden>
+        <label class="f"><span>Codice fiscale *</span><input type="text" name="cf" pattern="[A-Za-z0-9]{16}"></label>
+      </div>
+
+      <h2>Pagamento</h2>
+      <div class="pay" id="pay">Qui comparirà il modulo di pagamento sicuro di Stripe. Il sito non vede né conserva i dati della carta.</div>
+      <button class="btn" type="submit" id="go">Completa ordine di prova</button>
+      <p class="legal">Completando l'ordine accetti i <a href="termini.html">Termini e condizioni</a> e la <a href="privacy.html">Privacy policy</a>. La card è personalizzata: vedi <a href="resi.html">Resi e rimborsi</a>.</p>
+    </form>
+  </div></main>
+
+  <aside class="side"><div class="in">
+    <div class="item">
+      <img src="tappala-1.jpg" alt="">
+      <div><strong id="pName"></strong><small id="vName"></small></div>
+      <strong id="line"></strong>
+    </div>
+    <div class="seg" style="margin-top:14px" role="radiogroup" aria-label="Quantità" id="vars"></div>
+    <div class="qty" id="qtyBox" hidden><label for="qty">Quante card? (minimo 3)</label><input id="qty" type="number" min="3" value="3" inputmode="numeric"></div>
+    <div class="code"><input id="code" type="text" placeholder="Codice sconto" aria-label="Codice sconto"><button class="btn2" type="button" id="apply">Applica</button></div>
+    <div class="msg" id="msg" role="status"></div>
+    <div class="row"><span>Subtotale</span><span id="sub"></span></div>
+    <div class="row" id="discRow" hidden><span id="discL"></span><span id="disc"></span></div>
+    <div class="row"><span>Spedizione</span><span>Inclusa</span></div>
+    <div class="row tot"><span>Totale</span><span><small>EUR, IVA inclusa</small><span id="total"></span></span></div>
+  </div></aside>
+</div>
+
+<section class="done" id="done" hidden>
+  <h1>Ordine di prova registrato</h1>
+  <p id="doneN"></p>
+  <p>L'ordine è visibile nel pannello, tra gli ordini.</p>
+</section>
+
+<script src="store.js"></script>
+<script src="checkout.js"></script>
+</body>
+</html>

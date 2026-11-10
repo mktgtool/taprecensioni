@@ -27,7 +27,6 @@
           <figure><img src="showcase-2.jpg" alt="Una card, zero pensieri" width="1080" height="1080" loading="eager" fetchpriority="high"></figure>
             <figure><img src="showcase-3.jpg" alt="Un tocco e si apre la pagina recensioni" width="1080" height="1080" loading="lazy"></figure>
             <figure><img src="tappala-1.jpg" alt="Più recensioni con la card tappala" width="1080" height="1080" loading="lazy"></figure>
-            <figure><img src="tappala-3.jpg" alt="Nessun abbonamento" width="1080" height="1080" loading="lazy"></figure>
             <figure><img src="tappala-4.jpg" alt="Funziona con iPhone e Android" width="1080" height="1080" loading="lazy"></figure>
             <figure><img src="tappala-2.jpg" alt="Come funziona in 3 passi" width="1080" height="1080" loading="lazy"></figure>
             <figure><img src="tappala-5.jpg" alt="Pronta all'uso" width="1080" height="1080" loading="lazy"></figure>
@@ -51,8 +50,8 @@
             <legend class="tap-label">Scegli quante card</legend>
             <label class="tap-variant"><input type="radio" name="variant" value="uno" data-price="30" checked><span class="tap-variant__name">1 card</span><span class="tap-variant__price">30,00 €</span></label>
             <label class="tap-variant"><input type="radio" name="variant" value="due" data-price="50"><span class="tap-variant__name">2 card</span><span class="tap-variant__price">50,00 €</span><span class="tap-variant__tag tap-variant__tag--alt">Risparmi 10 €</span></label>
-            <label class="tap-variant"><input type="radio" name="variant" value="pack" data-price="120"><span class="tap-variant__name">5 card o più</span><span class="tap-variant__price">24,00 €<small> / card</small></span><span class="tap-variant__tag">−20%</span></label>
-            <p class="tap-next" data-pack-note hidden>La quantità esatta, da 5 card in su, si imposta nella pagina di pagamento.</p>
+            <label class="tap-variant"><input type="radio" name="variant" value="pack" data-price="24"><span class="tap-variant__name">3 card o più</span><span class="tap-variant__price">24,00 €<small> / card</small></span><span class="tap-variant__tag">−20%</span></label>
+            <div class="tap-qty" data-qty hidden><label for="tap-qty-input">Quante card? (minimo 3)</label><div class="tap-qty__ctrl"><button type="button" data-step="-1" aria-label="Una card in meno">−</button><input id="tap-qty-input" type="number" min="3" max="500" value="3" inputmode="numeric"><button type="button" data-step="1" aria-label="Una card in più">+</button></div></div>
             <p class="tap-total">Totale: <strong data-total>30,00 €</strong> <span>IVA inclusa · con fattura</span></p>
           </fieldset>
           <p class="tap-next"><strong>Al passo successivo</strong> indichi il nome dell'attività su Google Maps o il link della scheda, l'indirizzo di spedizione e i dati per la fattura, poi paghi in modo sicuro.</p>
@@ -112,7 +111,7 @@
       <div class="tap-pricing__grid">
         <div class="tap-price"><h3>1 card</h3><p class="tap-price__v">30 €</p><p>Per una postazione o una cassa</p></div>
         <div class="tap-price tap-price--hl"><h3>2 card</h3><p class="tap-price__v">50 €</p><p>Cassa + postazione / tavoli. Risparmi 10 €</p></div>
-        <div class="tap-price"><h3>5 card o più</h3><p class="tap-price__v">24 € <small>/ card</small></p><p>Sconto 20%. Per più sedi o tante postazioni</p></div>
+        <div class="tap-price"><h3>3 card o più</h3><p class="tap-price__v">24 € <small>/ card</small></p><p>Sconto 20%. Per più sedi o tante postazioni</p></div>
       </div>
       <p class="tap-pricing__note">IVA inclusa · spedizione inclusa · fattura · nessun abbonamento · durata 10 anni</p>
     </div>
@@ -143,8 +142,8 @@
           <p>Nessun abbonamento: paghi una volta sola. La card non ha batteria e dura 10 anni.</p></details>
         <details><summary>Chi configura la card?</summary>
           <p>La configura il team tappala sulla tua scheda Google, usando il nome o il link indicato nell'ordine. La card arriva già pronta all'uso.</p></details>
-        <details><summary>Posso ordinare più di 5 card?</summary>
-          <p>Sì: scegli "5+ card" e imposta la quantità. Lo sconto del 20% è già applicato.</p></details>
+        <details><summary>Posso ordinare più card?</summary>
+          <p>Sì: scegli "3 card o più" e imposta la quantità. Da 3 card in su ognuna costa 24 € invece di 30 €.</p></details>
       </div>
 
       <div class="tapi__col" id="spedizione">
@@ -202,6 +201,12 @@
     </nav>
   </div>
 </div>
+<footer class="tp-foot">
+  <p><strong>tappala</strong> è un servizio di <strong>JS DIGITAL SRLS</strong></p>
+  <p>Corso Vittorio Veneto 39, 07026 Olbia (SS) · P. IVA 03000200901</p>
+  <p>PEC <a href="mailto:jsdigitalsrls@pec.it">jsdigitalsrls@pec.it</a> · Tel. e WhatsApp <a href="tel:+393338074768">+39 333 807 4768</a> · <a href="mailto:serraonlinemarketing@gmail.com">serraonlinemarketing@gmail.com</a></p>
+  <p>© 2026 JS DIGITAL SRLS</p>
+</footer>
 <aside class="cb" id="cb" hidden aria-label="Consenso cookie">
   <h2>Consenso ai cookie</h2>
   <p>Con il tuo consenso, questo sito usa cookie di Meta per misurare e migliorare le inserzioni. Senza consenso usiamo solo ciò che serve al funzionamento del sito. Dettagli nella <a href="privacy.html">privacy policy</a>.</p>
