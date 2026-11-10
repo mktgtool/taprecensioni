@@ -1,5 +1,8 @@
 (function () {
-  var S = TapStore.load();
+  // Online i dati stanno nel database (API); in locale restano nel browser per le prove.
+  var REMOTE = !/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+  var S = REMOTE ? TapStore.seed() : TapStore.load();
+  var last = null;
   var main = document.getElementById('main');
   var fmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
   var ui = { days: 30, tests: false, status: 'Tutti', device: 'd' };
@@ -25,9 +28,67 @@
     clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 2200);
   }
   function persist(m) {
+    if (REMOTE) { sync().then(function (ok) { if (ok && m) toast(m); }); return true; }
     if (TapStore.save(S)) { if (m) toast(m); return true; }
     toast('Spazio del browser esaurito: modifica non salvata');
     return false;
+  }
+
+  // ===== Collegamento al server =====
+  function api(path, opts) {
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    opts.headers = Object.assign({ 'Content-Type': 'application/json', 'X-Tappala': '1' }, opts.headers || {});
+    return fetch('/api/' + path, opts);
+  }
+  function snap() { last = JSON.parse(JSON.stringify(S)); }
+  // Invia al server solo cio' che e' cambiato dall'ultimo salvataggio.
+  function sync() {
+    var body = { kv: {}, upsert: {}, remove: {} }, any = false;
+    ['product', 'theme', 'checkout', 'pages', 'uploads'].forEach(function (k) {
+      if (JSON.stringify(S[k]) !== JSON.stringify(last[k])) { body.kv[k] = S[k]; any = true; }
+    });
+    [['orders', 'id'], ['abandoned', 'id'], ['discounts', 'code']].forEach(function (p) {
+      var c = p[0], key = p[1], prev = {}, cur = {};
+      (last[c] || []).forEach(function (x) { prev[x[key]] = JSON.stringify(x); });
+      var up = S[c].filter(function (x) { cur[x[key]] = 1; return prev[x[key]] !== JSON.stringify(x); });
+      var rm = Object.keys(prev).filter(function (k) { return !cur[k]; });
+      if (up.length) { body.upsert[c] = up; any = true; }
+      if (rm.length) { body.remove[c] = rm; any = true; }
+    });
+    if (!any) return Promise.resolve(true);
+    snap();
+    return api('admin/state', { method: 'PATCH', body: JSON.stringify(body) }).then(function (r) {
+      if (r.status === 401) { loginView('Sessione scaduta: accedi di nuovo'); return false; }
+      if (!r.ok) { toast('Salvataggio non riuscito: ricarico i dati'); boot(); return false; }
+      return true;
+    }).catch(function () { toast('Connessione assente: modifica non salvata'); boot(); return false; });
+  }
+  function loginView(msg) {
+    document.querySelector('.nav').hidden = true;
+    main.innerHTML = '<div class="wrap"><form class="card" data-form="login" style="max-width:380px;margin:10vh auto">' +
+      '<h1 style="margin-bottom:14px">Accedi al pannello</h1>' + (msg ? '<p class="tag off" role="alert">' + e(msg) + '</p>' : '') +
+      '<label class="f">Password<input type="password" name="password" autocomplete="current-password" required autofocus></label>' +
+      '<button class="btn p">Entra</button></form></div>';
+  }
+  function boot() {
+    if (!REMOTE) { render(); return; }
+    var note = document.querySelector('.local-note');
+    if (note) note.remove();
+    api('admin/state').then(function (r) {
+      if (r.status === 401) return loginView();
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) { throw new Error(j.error || 'Errore ' + r.status); });
+      return r.json().then(function (d) {
+        S = TapStore.seed();
+        Object.keys(d.kv || {}).forEach(function (k) { S[k] = d.kv[k]; });
+        S.orders = d.orders || []; S.abandoned = d.abandoned || []; S.discounts = d.discounts || [];
+        snap();
+        document.querySelector('.nav').hidden = false;
+        render();
+      });
+    }).catch(function (err) {
+      main.innerHTML = '<div class="wrap">' + empty('Pannello non raggiungibile', err.message || 'Riprova tra poco.') + '</div>';
+    });
   }
   function commit(m) { persist(m); render(); }
   function vName(id, q) {
@@ -225,10 +286,12 @@
 
   // ===== Routing =====
   function render() {
-    S = TapStore.load();
+    if (!REMOTE) S = TapStore.load();
+    else if (!last) return;
     var parts = location.hash.replace(/^#\/?/, '').split('/');
     var r = parts[0] || 'home', id = decodeURIComponent(parts[1] || '');
-    document.getElementById('nav').innerHTML = SECTIONS.map(function (s) { return '<a href="#/' + s[0] + '"' + (s[0] === r ? ' class="on" aria-current="page"' : '') + '>' + e(s[1]) + '</a>'; }).join('');
+    document.getElementById('nav').innerHTML = SECTIONS.map(function (s) { return '<a href="#/' + s[0] + '"' + (s[0] === r ? ' class="on" aria-current="page"' : '') + '>' + e(s[1]) + '</a>'; }).join('') +
+      (REMOTE ? '<a href="#" data-logout>Esci</a>' : '');
     var html;
     if (r === 'ordini' && id === 'nuovo') html = nuovoOrdine();
     else if (r === 'ordini' && id) html = ordine(id);
@@ -263,10 +326,21 @@
       var v = S.product.variants.filter(function (x) { return x.id === d.variant; })[0];
       var q = v.fixed ? 1 : Math.max(v.min, parseInt(d.qty, 10) || v.min);
       var sub = TapStore.subtotal(S, d.variant, q);
-      S.seq += 1;
-      var o = { id: TapStore.uid(), number: S.seq, at: Date.now(), test: false, source: 'Manuale', variant: d.variant, qty: q, subtotal: sub, discount: 0, code: null, total: sub, payment: d.payment, fulfillment: 'Da configurare', tracking: '', note: '', customer: { gmaps: d.gmaps, firstName: d.firstName, lastName: d.lastName, email: d.email, phone: d.phone, address: d.address, city: d.city, province: d.province, invType: 'azienda' } };
-      S.orders.unshift(o);
-      if (persist('Ordine registrato')) location.hash = '#/ordini/' + o.id;
+      function create(num) {
+        var o = { id: TapStore.uid(), number: num, at: Date.now(), test: false, source: 'Manuale', variant: d.variant, qty: q, subtotal: sub, discount: 0, code: null, total: sub, payment: d.payment, fulfillment: 'Da configurare', tracking: '', note: '', customer: { gmaps: d.gmaps, firstName: d.firstName, lastName: d.lastName, email: d.email, phone: d.phone, address: d.address, city: d.city, province: d.province, invType: 'azienda' } };
+        S.orders.unshift(o);
+        if (persist('Ordine registrato')) location.hash = '#/ordini/' + o.id;
+      }
+      if (!REMOTE) { S.seq += 1; create(S.seq); return; }
+      api('admin/next-number', { method: 'POST' }).then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function (j) { create(j.number); })
+        .catch(function () { toast('Numero ordine non disponibile: riprova'); });
+    },
+    login: function (d) {
+      api('login', { method: 'POST', body: JSON.stringify({ password: d.password }) }).then(function (r) {
+        if (r.ok) return boot();
+        return r.json().catch(function () { return {}; }).then(function (j) { loginView(j.error || 'Accesso non riuscito'); });
+      }).catch(function () { loginView('Connessione assente'); });
     },
     product: function (d) {
       S.product.title = d.title;
@@ -303,6 +377,12 @@
   };
 
   document.addEventListener('click', function (ev) {
+    var out = ev.target.closest('[data-logout]');
+    if (out) {
+      ev.preventDefault();
+      api('logout', { method: 'POST' }).finally(function () { last = null; loginView('Sei uscito dal pannello'); });
+      return;
+    }
     var b = ev.target.closest('button[data-act]');
     if (b && ACTS[b.dataset.act]) ACTS[b.dataset.act](b);
   });
@@ -330,5 +410,5 @@
     }
   });
   window.addEventListener('hashchange', function () { render(); main.focus(); });
-  render();
+  boot();
 })();

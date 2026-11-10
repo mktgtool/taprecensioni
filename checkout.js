@@ -1,5 +1,6 @@
 (function () {
-  var S = TapStore.load();
+  var REMOTE = !/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+  var S = REMOTE ? TapStore.seed() : TapStore.load();
   var f = document.getElementById('f');
   var $ = function (id) { return document.getElementById(id); };
   var fmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
@@ -50,18 +51,37 @@
   });
   $('qty').addEventListener('input', paint);
 
-  $('apply').addEventListener('click', function () {
+  function applyCode() {
     var c = TapStore.checkDiscount(S, $('code').value, amounts().sub);
     $('msg').className = c.ok ? 'msg ok' : 'msg';
     $('msg').textContent = c.ok ? 'Sconto applicato' : c.msg;
     applied = c.ok ? c.code : null;
     paint();
+  }
+  $('apply').addEventListener('click', function () {
+    if (!REMOTE) return applyCode();
+    var code = $('code').value.trim().toUpperCase();
+    fetch('/api/public/discount?code=' + encodeURIComponent(code)).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      S.discounts = S.discounts.filter(function (d) { return d.code !== code; });
+      if (j && j.discount) S.discounts.push(j.discount);
+      applyCode();
+    }).catch(function () { $('msg').className = 'msg'; $('msg').textContent = 'Connessione assente, riprova'; });
   });
 
   // Telefono obbligatorio se impostato nel pannello
-  if (S.checkout.phoneRequired) {
-    f.elements.phone.required = true;
-    $('phoneL').textContent = 'Telefono *';
+  function applyCfg() {
+    f.elements.phone.required = !!S.checkout.phoneRequired;
+    $('phoneL').textContent = S.checkout.phoneRequired ? 'Telefono *' : 'Telefono (per il corriere)';
+  }
+  applyCfg();
+  if (REMOTE) {
+    $('go').textContent = 'Pagamento online in arrivo';
+    fetch('/api/public/config').then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j) return;
+      if (j.product && j.product.variants) S.product = j.product;
+      if (j.checkout) S.checkout = j.checkout;
+      applyCfg(); paint();
+    }).catch(function () { /* restano i valori predefiniti */ });
   }
 
   // Fattura: i campi obbligatori dipendono dal tipo di cliente
@@ -86,9 +106,13 @@
   // Registra il checkout abbandonato quando esiste un'email valida
   function snapshot() {
     if (!f.elements.email.value || !f.elements.email.checkValidity()) return;
-    var cur = TapStore.load();
     var a = amounts();
     var rec = { id: sid, at: Date.now(), variant: variant, qty: qty(), total: a.total, customer: data() };
+    if (REMOTE) {
+      fetch('/api/public/abandoned', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rec), keepalive: true }).catch(function () { /* non bloccante */ });
+      return;
+    }
+    var cur = TapStore.load();
     var i = cur.abandoned.map(function (x) { return x.id; }).indexOf(sid);
     if (i >= 0) cur.abandoned[i] = rec; else cur.abandoned.unshift(rec);
     TapStore.save(cur);
@@ -97,6 +121,12 @@
 
   f.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (REMOTE) {
+      snapshot();
+      $('pay').textContent = 'Il pagamento online non è ancora attivo. Per completare l\'ordine ora scrivi al team su WhatsApp al +39 333 807 4768: i tuoi dati sono già stati ricevuti.';
+      $('pay').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     var cur = TapStore.load();
     S = cur;
     var a = amounts();
