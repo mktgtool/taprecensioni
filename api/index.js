@@ -167,6 +167,123 @@ async function publicAbandoned(req, res) {
   send(res, 200, { ok: true });
 }
 
+// ===== Stripe =====
+const SITE = 'https://www.tappala.com';
+async function stripe(path, params) {
+  const r = await fetch('https://api.stripe.com/v1/' + path, {
+    method: params ? 'POST' : 'GET',
+    headers: {
+      Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Stripe-Version': '2024-06-20'
+    },
+    body: params ? new URLSearchParams(params).toString() : undefined
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error((j.error && j.error.message) || 'Stripe ' + r.status);
+  return j;
+}
+function discountAmount(d, sub) {
+  if (!d || !d.active) return 0;
+  if (d.expires && new Date(d.expires + 'T23:59:59Z').getTime() < Date.now()) return 0;
+  if (d.maxUses && d.used >= d.maxUses) return 0;
+  if (d.minOrder && sub < d.minOrder) return 0;
+  return d.type === 'percent' ? Math.round(sub * d.value) / 100 : Math.min(d.value, sub);
+}
+// Crea la pagina di pagamento Stripe con l'importo esatto del carrello.
+async function publicCheckout(req, res) {
+  if (!process.env.STRIPE_SECRET_KEY) return send(res, 503, { error: 'Pagamenti non ancora attivi' });
+  const b = body(req);
+  const p = await product();
+  const v = (p.variants || []).find((x) => x.id === b.variant);
+  if (!v) return send(res, 400, { error: 'Prodotto non valido' });
+  const qty = v.fixed ? 1 : Math.min(500, Math.max(v.min, parseInt(b.qty, 10) || v.min));
+  const sub = Math.round((v.fixed ? v.price : v.price * qty) * 100) / 100;
+  const code = str(b.code, 30).trim().toUpperCase();
+  let disc = 0;
+  if (code) {
+    const rows = await sql`select data from discounts where code = ${code}`;
+    disc = rows.length ? discountAmount(rows[0].data, sub) : 0;
+  }
+  const cents = Math.max(50, Math.round((sub - disc) * 100));
+  const label = v.fixed ? v.name : qty + ' card';
+  const s = await stripe('checkout/sessions', {
+    mode: 'payment',
+    locale: 'it',
+    'line_items[0][quantity]': '1',
+    'line_items[0][price_data][currency]': 'eur',
+    'line_items[0][price_data][unit_amount]': String(cents),
+    'line_items[0][price_data][product_data][name]': `${p.title} · ${label}`,
+    'line_items[0][price_data][product_data][description]': 'Configurata sulla tua scheda Google. Spedizione inclusa, IVA inclusa.',
+    customer_creation: 'always',
+    billing_address_collection: 'required',
+    'shipping_address_collection[allowed_countries][0]': 'IT',
+    'phone_number_collection[enabled]': 'true',
+    'tax_id_collection[enabled]': 'true',
+    'custom_fields[0][key]': 'gmaps',
+    'custom_fields[0][label][type]': 'custom',
+    'custom_fields[0][label][custom]': 'Nome attività su Google Maps o link',
+    'custom_fields[0][type]': 'text',
+    'custom_fields[1][key]': 'sdi',
+    'custom_fields[1][label][type]': 'custom',
+    'custom_fields[1][label][custom]': 'Codice SDI o PEC per la fattura',
+    'custom_fields[1][type]': 'text',
+    'custom_fields[1][optional]': 'true',
+    'metadata[variant]': v.id,
+    'metadata[qty]': String(qty),
+    'metadata[code]': disc ? code : '',
+    success_url: SITE + '/grazie?session_id={CHECKOUT_SESSION_ID}',
+    cancel_url: SITE + '/#tap-form'
+  });
+  send(res, 200, { url: s.url });
+}
+// Registra un pagamento completato come ordine (una sola volta per sessione).
+async function savePaid(s) {
+  if (!s || s.status !== 'complete' || s.payment_status !== 'paid') return null;
+  const exists = await sql`select data from orders where id = ${s.id}`;
+  if (exists.length) return exists[0].data;
+  const cd = s.customer_details || {};
+  const sh = s.shipping_details || {};
+  const a = sh.address || cd.address || {};
+  const field = (k) => ((s.custom_fields || []).find((f) => f.key === k) || {}).text || {};
+  const tax = (cd.tax_ids || [])[0];
+  const md = s.metadata || {};
+  const [{ n }] = await sql`select nextval('order_seq')::int as n`;
+  const order = {
+    id: s.id, number: n, at: (s.created || Math.floor(Date.now() / 1000)) * 1000, test: !s.livemode, source: 'Stripe',
+    variant: md.variant || 'uno', qty: parseInt(md.qty, 10) || 1,
+    subtotal: (s.amount_subtotal || 0) / 100, discount: ((s.amount_subtotal || 0) - (s.amount_total || 0)) / 100,
+    code: md.code || null, total: (s.amount_total || 0) / 100,
+    payment: 'Pagato', fulfillment: 'Da configurare', tracking: '', note: '',
+    customer: {
+      email: cd.email || '', phone: cd.phone || '', gmaps: field('gmaps').value || '',
+      firstName: sh.name || cd.name || '', lastName: '',
+      address: [a.line1, a.line2].filter(Boolean).join(', '), zip: a.postal_code || '', city: a.city || '', province: a.state || '',
+      invType: tax ? 'azienda' : 'privato', company: tax ? (cd.name || '') : '', vat: tax ? tax.value : '', sdi: field('sdi').value || '', cf: ''
+    }
+  };
+  const ins = await sql`insert into orders (id, number, at, data) values (${order.id}, ${order.number}, ${order.at}, ${JSON.stringify(order)}::jsonb) on conflict (id) do nothing returning id`;
+  if (ins.length && order.code) {
+    await sql`update discounts set data = jsonb_set(data, '{used}', to_jsonb(coalesce((data->>'used')::int, 0) + 1)) where code = ${order.code}`;
+  }
+  return order;
+}
+async function publicConfirm(url, res) {
+  const id = str(url.searchParams.get('session_id'), 200);
+  if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(id) || !process.env.STRIPE_SECRET_KEY) return send(res, 400, { error: 'Sessione non valida' });
+  const o = await savePaid(await stripe('checkout/sessions/' + id));
+  if (!o) return send(res, 202, { paid: false });
+  send(res, 200, { paid: true, number: o.number, total: o.total });
+}
+// Recupera i pagamenti recenti che non sono passati dalla pagina di ringraziamento.
+async function syncStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  try {
+    const list = await stripe('checkout/sessions?limit=50&status=complete');
+    for (const s of list.data || []) await savePaid(s);
+  } catch (err) { console.error('stripe sync', err.message); }
+}
+
 module.exports = async (req, res) => {
   const url = new URL(req.url, 'https://www.tappala.com');
   const route = (url.searchParams.get('route') || url.pathname.replace(/^\/api\/?/, '')).replace(/^index\/?/, '').replace(/\/+$/, '');
@@ -177,12 +294,14 @@ module.exports = async (req, res) => {
     if (route === 'public/config' && m === 'GET') return await publicConfig(res);
     if (route === 'public/discount' && m === 'GET') return await publicDiscount(url, res);
     if (route === 'public/abandoned' && m === 'POST') return await publicAbandoned(req, res);
+    if (route === 'public/checkout' && m === 'POST') return await publicCheckout(req, res);
+    if (route === 'public/confirm' && m === 'GET') return await publicConfirm(url, res);
     if (route === 'login' && m === 'POST') return await login(req, res);
     if (route === 'logout' && m === 'POST') return await logout(req, res);
     if (route.startsWith('admin/')) {
       if (m !== 'GET' && req.headers['x-tappala'] !== '1') return send(res, 403, { error: 'Richiesta non consentita' });
       if (!(await isAdmin(req))) return send(res, 401, { error: 'Accesso richiesto' });
-      if (route === 'admin/state' && m === 'GET') return await state(res);
+      if (route === 'admin/state' && m === 'GET') { await syncStripe(); return await state(res); }
       if (route === 'admin/state' && m === 'PATCH') return await patchState(req, res);
       if (route === 'admin/next-number' && m === 'POST') return await nextNumber(res);
     }
