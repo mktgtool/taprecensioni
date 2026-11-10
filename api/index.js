@@ -169,11 +169,13 @@ async function publicAbandoned(req, res) {
 
 // ===== Stripe =====
 const SITE = 'https://www.tappala.com';
+// Chiave privata Stripe: STRIPE_SECRET_KEY, oppure la variabile 'tappala' creata su Vercel.
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || process.env.tappala;
 async function stripe(path, params) {
   const r = await fetch('https://api.stripe.com/v1/' + path, {
     method: params ? 'POST' : 'GET',
     headers: {
-      Authorization: 'Bearer ' + process.env.STRIPE_SECRET_KEY,
+      Authorization: 'Bearer ' + STRIPE_KEY,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Stripe-Version': '2024-06-20'
     },
@@ -192,7 +194,7 @@ function discountAmount(d, sub) {
 }
 // Crea la pagina di pagamento Stripe con l'importo esatto del carrello.
 async function publicCheckout(req, res) {
-  if (!process.env.STRIPE_SECRET_KEY) return send(res, 503, { error: 'Pagamenti non ancora attivi' });
+  if (!STRIPE_KEY) return send(res, 503, { error: 'Pagamenti non ancora attivi' });
   const b = body(req);
   const p = await product();
   const v = (p.variants || []).find((x) => x.id === b.variant);
@@ -270,14 +272,14 @@ async function savePaid(s) {
 }
 async function publicConfirm(url, res) {
   const id = str(url.searchParams.get('session_id'), 200);
-  if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(id) || !process.env.STRIPE_SECRET_KEY) return send(res, 400, { error: 'Sessione non valida' });
+  if (!/^cs_(test|live)_[A-Za-z0-9]+$/.test(id) || !STRIPE_KEY) return send(res, 400, { error: 'Sessione non valida' });
   const o = await savePaid(await stripe('checkout/sessions/' + id));
   if (!o) return send(res, 202, { paid: false });
   send(res, 200, { paid: true, number: o.number, total: o.total });
 }
 // Recupera i pagamenti recenti che non sono passati dalla pagina di ringraziamento.
 async function syncStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) return;
+  if (!STRIPE_KEY) return;
   try {
     const list = await stripe('checkout/sessions?limit=50&status=complete');
     for (const s of list.data || []) await savePaid(s);
