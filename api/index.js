@@ -209,35 +209,57 @@ async function publicCheckout(req, res) {
   }
   const cents = Math.max(50, Math.round((sub - disc) * 100));
   const label = v.fixed ? v.name : qty + ' card';
-  const s = await stripe('checkout/sessions', {
+  const chk = checkCustomer(b.customer);
+  if (chk.error) return send(res, 400, { error: chk.error });
+  const c = chk.c;
+  const invoice = c.invType === 'privato'
+    ? `Fattura: ${c.firstName} ${c.lastName}, C.F. ${c.cf}`
+    : `Fattura: ${c.company}, P.IVA ${c.vat}, SDI/PEC ${c.sdi}`;
+  const summary = [
+    `Spedizione a ${c.firstName} ${c.lastName}, ${c.address}, ${c.zip} ${c.city} (${c.province})`,
+    `Tel. ${c.phone}`,
+    invoice,
+    c.gmaps ? `Scheda Google: ${c.gmaps}` : 'Scheda Google: ti contatta il team tappala',
+    'Spedizione inclusa, IVA inclusa.'
+  ].join(' · ');
+  const params = {
     mode: 'payment',
     locale: 'it',
+    customer_email: c.email,
+    customer_creation: 'always',
+    billing_address_collection: 'auto',
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'eur',
     'line_items[0][price_data][unit_amount]': String(cents),
     'line_items[0][price_data][product_data][name]': `${p.title} · ${label}`,
-    'line_items[0][price_data][product_data][description]': 'Configurata sulla tua scheda Google. Spedizione inclusa, IVA inclusa.',
-    customer_creation: 'always',
-    billing_address_collection: 'required',
-    'shipping_address_collection[allowed_countries][0]': 'IT',
-    'phone_number_collection[enabled]': 'true',
-    'tax_id_collection[enabled]': 'true',
-    'custom_fields[0][key]': 'gmaps',
-    'custom_fields[0][label][type]': 'custom',
-    'custom_fields[0][label][custom]': 'Nome attività su Google Maps o link',
-    'custom_fields[0][type]': 'text',
-    'custom_fields[1][key]': 'sdi',
-    'custom_fields[1][label][type]': 'custom',
-    'custom_fields[1][label][custom]': 'Codice SDI o PEC per la fattura',
-    'custom_fields[1][type]': 'text',
-    'custom_fields[1][optional]': 'true',
+    'line_items[0][price_data][product_data][description]': summary.slice(0, 1000),
     'metadata[variant]': v.id,
     'metadata[qty]': String(qty),
     'metadata[code]': disc ? code : '',
+    'metadata[cid]': str(b.cid, 40),
     success_url: SITE + '/grazie?session_id={CHECKOUT_SESSION_ID}',
     cancel_url: SITE + '/#tap-form'
-  });
+  };
+  CUSTOMER_FIELDS.forEach((k) => { if (c[k]) params['metadata[c_' + k + ']'] = c[k]; });
+  const s = await stripe('checkout/sessions', params);
   send(res, 200, { url: s.url });
+}
+// Controlla i dati inseriti nella pagina prodotto prima di creare il pagamento.
+function checkCustomer(raw) {
+  const c = {};
+  CUSTOMER_FIELDS.forEach((f) => { c[f] = str((raw || {})[f], 250).trim(); });
+  c.province = c.province.toUpperCase();
+  c.invType = c.invType === 'privato' ? 'privato' : 'azienda';
+  const need = ['firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'province'];
+  need.push(...(c.invType === 'privato' ? ['cf'] : ['company', 'vat', 'sdi']));
+  const missing = need.filter((k) => !c[k]);
+  if (missing.length) return { error: 'Compila tutti i campi obbligatori' };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) return { error: 'Email non valida' };
+  if (!/^[0-9]{5}$/.test(c.zip)) return { error: 'CAP non valido' };
+  if (!/^[A-Z]{2}$/.test(c.province)) return { error: 'Provincia non valida: usa la sigla, es. SS' };
+  if (c.invType === 'azienda' && !/^(IT)?[0-9]{11}$/i.test(c.vat)) return { error: 'Partita IVA non valida' };
+  if (c.invType === 'privato' && !/^[A-Za-z0-9]{16}$/.test(c.cf)) return { error: 'Codice fiscale non valido' };
+  return { c };
 }
 // Registra un pagamento completato come ordine (una sola volta per sessione).
 async function savePaid(s) {
@@ -257,14 +279,20 @@ async function savePaid(s) {
     subtotal: (s.amount_subtotal || 0) / 100, discount: ((s.amount_subtotal || 0) - (s.amount_total || 0)) / 100,
     code: md.code || null, total: (s.amount_total || 0) / 100,
     payment: 'Pagato', fulfillment: 'Da configurare', tracking: '', note: '',
-    customer: {
-      email: cd.email || '', phone: cd.phone || '', gmaps: field('gmaps').value || '',
-      firstName: sh.name || cd.name || '', lastName: '',
-      address: [a.line1, a.line2].filter(Boolean).join(', '), zip: a.postal_code || '', city: a.city || '', province: a.state || '',
-      invType: tax ? 'azienda' : 'privato', company: tax ? (cd.name || '') : '', vat: tax ? tax.value : '', sdi: field('sdi').value || '', cf: ''
-    }
+    customer: md.c_firstName
+      // Dati inseriti nella pagina prodotto
+      ? Object.fromEntries(CUSTOMER_FIELDS.map((k) => [k, md['c_' + k] || (k === 'email' ? cd.email || '' : '')]))
+      // Ordini creati quando Stripe raccoglieva i dati
+      : {
+        email: cd.email || '', phone: cd.phone || '', gmaps: field('gmaps').value || '',
+        firstName: sh.name || cd.name || '', lastName: '',
+        address: [a.line1, a.line2].filter(Boolean).join(', '), zip: a.postal_code || '', city: a.city || '', province: a.state || '',
+        invType: tax ? 'azienda' : 'privato', company: tax ? (cd.name || '') : '', vat: tax ? tax.value : '', sdi: field('sdi').value || '', cf: ''
+      }
   };
+  if (!order.customer.gmaps) order.note = 'Scheda Google non indicata: contattare il cliente.';
   const ins = await sql`insert into orders (id, number, at, data) values (${order.id}, ${order.number}, ${order.at}, ${JSON.stringify(order)}::jsonb) on conflict (id) do nothing returning id`;
+  if (ins.length && md.cid) await sql`delete from abandoned where id = ${md.cid}`;
   if (ins.length && order.code) {
     await sql`update discounts set data = jsonb_set(data, '{used}', to_jsonb(coalesce((data->>'used')::int, 0) + 1)) where code = ${order.code}`;
   }
