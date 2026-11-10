@@ -1,6 +1,6 @@
 (function () {
   // ===== CONFIGURAZIONE =====
-  // Incollare qui i tre Payment Link di Stripe e l'ID del pixel Meta.
+  // ID del pixel Meta. Il pagamento passa da /api/public/checkout (Stripe Checkout).
   var CONFIG = {
     links: { uno: '', due: '', pack: '' },
     metaPixelId: '4574433882871297'
@@ -47,6 +47,15 @@
     a.addEventListener('click', function (e) { e.preventDefault(); if (banner) banner.hidden = false; });
   });
 
+  // ===== Pagina di ringraziamento: conferma il pagamento e mostra il numero d'ordine =====
+  var sessionId = new URLSearchParams(location.search).get('session_id');
+  var orderBox = document.getElementById('order-n');
+  if (orderBox && sessionId) {
+    fetch('/api/public/confirm?session_id=' + encodeURIComponent(sessionId)).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.paid) orderBox.textContent = 'Ordine n. ' + j.number + ' · ' + new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(j.total);
+    }).catch(function () { /* il pannello recupera comunque il pagamento */ });
+  }
+
   // ===== Pagina prodotto =====
   var form = document.getElementById('tap-form');
   if (!form) return;
@@ -87,9 +96,18 @@
     store('sessionStorage', 'tap-variant', key);
     store('sessionStorage', 'tap-value', String(amount()));
     if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 2 : 1) });
-    var link = CONFIG.links[key];
-    if (link) { window.location.href = link + (link.indexOf('?') < 0 ? '?' : '&') + 'locale=it'; return; }
-    window.location.href = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + '). La mia attività su Google Maps è: ');
+    var btn = form.querySelector('[type=submit]');
+    var whatsapp = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + '). La mia attività su Google Maps è: ');
+    btn.disabled = true; btn.textContent = 'Un attimo…';
+    // Il server crea la pagina di pagamento Stripe con l'importo esatto del carrello.
+    fetch('/api/public/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variant: key, qty: key === 'pack' ? count() : 1 })
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      window.location.href = j && j.url ? j.url : whatsapp;
+    }).catch(function () { window.location.href = whatsapp; })
+      .finally(function () { setTimeout(function () { btn.disabled = false; btn.textContent = 'Ordina ora'; }, 4000); });
   });
 
   var gal = document.querySelector('[data-gallery]'), dots = document.querySelector('[data-dots]');
