@@ -14,9 +14,10 @@ const DEFAULT_PRODUCT = {
   title: 'Card NFC Recensioni Google',
   status: 'Attivo',
   variants: [
-    { id: 'uno', name: '1+1 gratis (2 card)', price: 34.9, min: 1, fixed: true },
-    { id: 'due', name: '2+2 gratis (4 card)', price: 68.9, min: 1, fixed: true },
-    { id: 'pack', name: '3 card o più', price: 24, min: 3, fixed: false }
+    { id: 'pack', name: 'Card singola', price: 30, min: 1, fixed: false },
+    { id: 'uno', name: '1+1 gratis (2 card)', price: 34.9, compare: 60, min: 1, fixed: true },
+    { id: 'due', name: '2+2 gratis (4 card)', price: 68.9, compare: 120, min: 1, fixed: true },
+    { id: 'cinque', name: '5+5 gratis (10 card)', price: 149.9, compare: 300, min: 1, fixed: true }
   ]
 };
 const CUSTOMER_FIELDS = ['email', 'phone', 'gmaps', 'firstName', 'lastName', 'address', 'zip', 'city', 'province', 'invType', 'company', 'vat', 'sdi', 'cf'];
