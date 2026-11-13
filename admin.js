@@ -13,7 +13,7 @@
     ['risorse', 'Risorse'], ['pagine', 'Pagine'], ['canali', 'Canali di vendita'], ['editor', 'Editor negozio'],
     ['sconti', 'Sconti'], ['checkout', 'Checkout']
   ];
-  var FILES = ['black-friday.jpg', 'showcase-2.jpg', 'showcase-3.jpg', 'tappala-1.jpg', 'tappala-2.jpg', 'tappala-3.jpg', 'tappala-4.jpg', 'tappala-5.jpg'];
+  var FILES = ['black-friday-2.jpg', 'showcase-2.jpg', 'showcase-3.jpg', 'tappala-1.jpg', 'tappala-2.jpg', 'tappala-3.jpg', 'tappala-4.jpg', 'tappala-5.jpg'];
 
   function e(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {

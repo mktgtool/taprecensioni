@@ -6,7 +6,7 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { uno: 34.9, due: 69, pack: 72 };
+  var VALUES = { uno: 34.9, due: 68.9, pack: 72 };
   var NAMES = { uno: '1+1 gratis (2 card)', due: '2+2 gratis (4 card)', pack: '3 o più card' };
 
   function store(kind, key, val) {

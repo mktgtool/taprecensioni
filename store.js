@@ -9,7 +9,7 @@
         status: 'Attivo',
         variants: [
           { id: 'uno', name: '1+1 gratis (2 card)', price: 34.9, min: 1, fixed: true },
-          { id: 'due', name: '2+2 gratis (4 card)', price: 69, min: 1, fixed: true },
+          { id: 'due', name: '2+2 gratis (4 card)', price: 68.9, min: 1, fixed: true },
           { id: 'pack', name: '3 card o più', price: 24, min: 3, fixed: false }
         ]
       },

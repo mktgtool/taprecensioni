@@ -204,3 +204,15 @@ body { margin: 0; background: #F3F6FD; }
 .tap-opt { font-weight: 500; color: var(--muted); font-size: 13px; }
 .tap-form .tap-invoice input:not([type=radio]) { margin: 0; }
 .tap-variant__name small { font-weight: 500; color: var(--muted); }
+.tap-pas { padding: 56px 0 8px; background: var(--bg-soft); text-align: center; }
+.tap-pas__h { margin: 12px auto 24px; max-width: 680px; }
+.tap-pas__grid { display: grid; gap: 14px; text-align: left; }
+.tap-pas__card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.tap-pas__card p { margin: 0; color: var(--ink); }
+.tap-pas__card ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--ink); }
+.tap-pas__n { display: block; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+.tap-pas__card--warn { border-left: 4px solid #D93025; }
+.tap-pas__card--warn .tap-pas__n { color: #B3261E; }
+.tap-pas__card--ok { border-left: 4px solid var(--blue); background: #EEF2FF; }
+.tap-pas__card--ok .tap-pas__n { color: var(--blue); }
+.tap-pas__card--ok .tap-btn { margin-top: 16px; }
