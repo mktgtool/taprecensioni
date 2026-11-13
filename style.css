@@ -203,3 +203,4 @@ body { margin: 0; background: #F3F6FD; }
 @media (min-width: 900px) { .tp-foot { padding-bottom: 40px; } }
 .tap-opt { font-weight: 500; color: var(--muted); font-size: 13px; }
 .tap-form .tap-invoice input:not([type=radio]) { margin: 0; }
+.tap-variant__name small { font-weight: 500; color: var(--muted); }

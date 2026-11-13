@@ -6,8 +6,8 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { uno: 30, due: 50, pack: 72 };
-  var NAMES = { uno: '1 card', due: '2 card', pack: '3 o più card' };
+  var VALUES = { uno: 34.9, due: 69, pack: 72 };
+  var NAMES = { uno: '1+1 gratis (2 card)', due: '2+2 gratis (4 card)', pack: '3 o più card' };
 
   function store(kind, key, val) {
     try {
@@ -129,7 +129,7 @@
     var key = selected().value;
     store('sessionStorage', 'tap-variant', key);
     store('sessionStorage', 'tap-value', String(amount()));
-    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 2 : 1) });
+    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 4 : 2) });
     var btn = form.querySelector('[type=submit]');
     var whatsapp = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + ').');
     btn.disabled = true; btn.textContent = 'Un attimo…';
