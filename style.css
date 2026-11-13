@@ -119,7 +119,7 @@
   /* Pricing */
   .tap-pricing { padding: 64px 0; background: var(--bg-soft); }
   .tap-pricing__grid { display: grid; gap: 16px; grid-template-columns: 1fr; max-width: 900px; margin: 0 auto; }
-  @media (min-width: 760px) { .tap-pricing__grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 600px) { .tap-pricing__grid { grid-template-columns: repeat(2, 1fr); } } @media (min-width: 1000px) { .tap-pricing__grid { grid-template-columns: repeat(4, 1fr); max-width: 1120px; } }
   .tap-price { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; text-align: center; }
   .tap-price--hl { background: var(--blue); border-color: var(--blue); color: #fff; }
   .tap-price h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--muted); }
@@ -216,3 +216,5 @@ body { margin: 0; background: #F3F6FD; }
 .tap-pas__card--ok { border-left: 4px solid var(--blue); background: #EEF2FF; }
 .tap-pas__card--ok .tap-pas__n { color: var(--blue); }
 .tap-pas__card--ok .tap-btn { margin-top: 16px; }
+.tap-was { text-decoration: line-through; color: var(--muted); font-weight: 500; font-size: .78em; margin-right: 6px; }
+.tap-price--hl .tap-was { color: #C9D3F5; }

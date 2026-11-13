@@ -6,8 +6,8 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { uno: 34.9, due: 68.9, pack: 72 };
-  var NAMES = { uno: '1+1 gratis (2 card)', due: '2+2 gratis (4 card)', pack: '3 o più card' };
+  var VALUES = { pack: 30, uno: 34.9, due: 68.9, cinque: 149.9 };
+  var NAMES = { pack: '1 card', uno: '1+1 gratis (2 card)', due: '2+2 gratis (4 card)', cinque: '5+5 gratis (10 card)' };
 
   function store(kind, key, val) {
     try {
@@ -64,7 +64,7 @@
   var totals = document.querySelectorAll('[data-total]');
   var qtyBox = form.querySelector('[data-qty]');
   var qty = form.querySelector('#tap-qty-input');
-  var MIN = 3, MAX = 500;
+  var MIN = 1, MAX = 500;
   function selected() { return form.querySelector('input[name="variant"]:checked'); }
   function count() { return Math.min(MAX, Math.max(MIN, parseInt(qty.value, 10) || MIN)); }
   function amount() {
@@ -129,7 +129,7 @@
     var key = selected().value;
     store('sessionStorage', 'tap-variant', key);
     store('sessionStorage', 'tap-value', String(amount()));
-    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : (key === 'due' ? 4 : 2) });
+    if (window.fbq) window.fbq('track', 'InitiateCheckout', { currency: 'EUR', value: amount(), num_items: key === 'pack' ? count() : ({ uno: 2, due: 4, cinque: 10 })[key] });
     var btn = form.querySelector('[type=submit]');
     var whatsapp = WA + encodeURIComponent('Ciao, vorrei ordinare: ' + label() + ' tappala (' + fmt.format(amount()) + ').');
     btn.disabled = true; btn.textContent = 'Un attimo…';

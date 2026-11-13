@@ -13,7 +13,7 @@
 </head>
 <body data-page="home">
 <div class="tap" id="tap">
-  <div class="tap-announce">BLACK FRIDAY · 1+1 gratis a 34,90 € · 2+2 gratis a 68,90 € · Spedizione inclusa</div>
+  <div class="tap-announce">BLACK FRIDAY · 1+1 gratis 34,90 € · 2+2 gratis 68,90 € · 5+5 gratis 149,90 € · Spedizione inclusa</div>
   <header class="tp-top"><a href="index.html" aria-label="tappala, pagina principale"><img src="logo-mark.svg" alt="" width="40" height="40"><span>tappala</span></a></header>
   <section class="tap-hero">
     <div class="tap-wrap tap-payoff">
@@ -49,10 +49,11 @@
         <form id="tap-form" class="tap-form">
           <fieldset class="tap-variants">
             <legend class="tap-label">Scegli quante card</legend>
-            <label class="tap-variant"><input type="radio" name="variant" value="uno" data-price="34.9" checked><span class="tap-variant__name">1+1 gratis <small>· 2 card</small></span><span class="tap-variant__price">34,90 €</span><span class="tap-variant__tag">Black Friday</span></label>
-            <label class="tap-variant"><input type="radio" name="variant" value="due" data-price="68.9"><span class="tap-variant__name">2+2 gratis <small>· 4 card</small></span><span class="tap-variant__price">68,90 €</span><span class="tap-variant__tag tap-variant__tag--alt">Black Friday</span></label>
-            <label class="tap-variant"><input type="radio" name="variant" value="pack" data-price="24"><span class="tap-variant__name">3 card o più</span><span class="tap-variant__price">24,00 €<small> / card</small></span><span class="tap-variant__tag">−20%</span></label>
-            <div class="tap-qty" data-qty hidden><label for="tap-qty-input">Quante card? (minimo 3)</label><div class="tap-qty__ctrl"><button type="button" data-step="-1" aria-label="Una card in meno">−</button><input id="tap-qty-input" type="number" min="3" max="500" value="3" inputmode="numeric"><button type="button" data-step="1" aria-label="Una card in più">+</button></div></div>
+            <label class="tap-variant"><input type="radio" name="variant" value="pack" data-price="30"><span class="tap-variant__name">1 card <small>· prezzo pieno</small></span><span class="tap-variant__price">30,00 €<small> / card</small></span></label>
+            <div class="tap-qty" data-qty hidden><label for="tap-qty-input">Quante card?</label><div class="tap-qty__ctrl"><button type="button" data-step="-1" aria-label="Una card in meno">−</button><input id="tap-qty-input" type="number" min="1" max="500" value="1" inputmode="numeric"><button type="button" data-step="1" aria-label="Una card in più">+</button></div></div>
+            <label class="tap-variant"><input type="radio" name="variant" value="uno" data-price="34.9" checked><span class="tap-variant__name">1+1 gratis <small>· 2 card</small></span><span class="tap-variant__price"><s class="tap-was" aria-label="Prezzo pieno 60 euro">60,00 €</s>34,90 €</span><span class="tap-variant__tag">Black Friday</span></label>
+            <label class="tap-variant"><input type="radio" name="variant" value="due" data-price="68.9"><span class="tap-variant__name">2+2 gratis <small>· 4 card</small></span><span class="tap-variant__price"><s class="tap-was" aria-label="Prezzo pieno 120 euro">120,00 €</s>68,90 €</span><span class="tap-variant__tag">Black Friday</span></label>
+            <label class="tap-variant"><input type="radio" name="variant" value="cinque" data-price="149.9"><span class="tap-variant__name">5+5 gratis <small>· 10 card</small></span><span class="tap-variant__price"><s class="tap-was" aria-label="Prezzo pieno 300 euro">300,00 €</s>149,90 €</span><span class="tap-variant__tag tap-variant__tag--alt">Più conveniente</span></label>
             <p class="tap-total">Totale: <strong data-total>34,90 €</strong> <span>IVA inclusa · con fattura</span></p>
           </fieldset>
 <fieldset class="tap-invoice tap-address">
@@ -176,9 +177,10 @@
     <div class="tap-wrap">
       <h2 class="tap-h2">Offerta Black Friday</h2>
       <div class="tap-pricing__grid">
-        <div class="tap-price"><h3>1+1 gratis</h3><p class="tap-price__v">34,90 €</p><p>2 card: la seconda è in regalo</p></div>
-        <div class="tap-price tap-price--hl"><h3>2+2 gratis</h3><p class="tap-price__v">68,90 €</p><p>4 card per più postazioni o sedi</p></div>
-        <div class="tap-price"><h3>3 card o più</h3><p class="tap-price__v">24 € <small>/ card</small></p><p>Sconto 20%. Per più sedi o tante postazioni</p></div>
+        <div class="tap-price"><h3>1 card</h3><p class="tap-price__v">30 €</p><p>Prezzo pieno, scegli tu la quantità</p></div>
+        <div class="tap-price"><h3>1+1 gratis</h3><p class="tap-price__v"><s class="tap-was">60 €</s>34,90 €</p><p>2 card: la seconda è in regalo</p></div>
+        <div class="tap-price tap-price--hl"><h3>2+2 gratis</h3><p class="tap-price__v"><s class="tap-was">120 €</s>68,90 €</p><p>4 card per più postazioni o sedi</p></div>
+        <div class="tap-price"><h3>5+5 gratis</h3><p class="tap-price__v"><s class="tap-was">300 €</s>149,90 €</p><p>10 card, il prezzo più basso per card</p></div>
       </div>
       <p class="tap-pricing__note">IVA inclusa · spedizione inclusa · fattura · nessun abbonamento · durata 10 anni</p>
     </div>
@@ -210,7 +212,7 @@
         <details><summary>Chi configura la card?</summary>
           <p>La configura il team tappala sulla tua scheda Google, usando il nome o il link indicato nell'ordine. La card arriva già pronta all'uso.</p></details>
         <details><summary>Posso ordinare più card?</summary>
-          <p>Sì: scegli "3 card o più" e imposta la quantità. Da 3 card in su ognuna costa 24 € invece di 30 €.</p></details>
+          <p>Sì: scegli la card singola e imposta la quantità, oppure le offerte 1+1, 2+2 e 5+5, che sono le più convenienti.</p></details>
       </div>
 
       <div class="tapi__col" id="spedizione">

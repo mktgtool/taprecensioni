@@ -46,7 +46,7 @@
     i.type = 'radio'; i.name = 'variant'; i.value = x.id; i.checked = x.id === variant;
     i.addEventListener('change', function () { variant = x.id; paint(); snapshot(); });
     l.appendChild(i);
-    l.appendChild(document.createTextNode(' ' + (x.fixed ? x.name : '3+')));
+    l.appendChild(document.createTextNode(' ' + (x.fixed ? x.name : 'Singola')));
     $('vars').appendChild(l);
   });
   $('qty').addEventListener('input', paint);

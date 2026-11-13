@@ -163,7 +163,7 @@
   function nuovoOrdine() {
     return '<a class="back" href="#/ordini">← Ordini</a>' + head('Crea ordine') +
       '<form class="card" data-form="newOrder" style="max-width:640px">' +
-      '<div class="r2"><label class="f">Variante<select name="variant">' + S.product.variants.map(function (v) { return '<option value="' + e(v.id) + '">' + e(v.name) + '</option>'; }).join('') + '</select></label><label class="f">Quantità card (solo 3+)<input name="qty" type="number" min="3" value="3"></label></div>' +
+      '<div class="r2"><label class="f">Variante<select name="variant">' + S.product.variants.map(function (v) { return '<option value="' + e(v.id) + '">' + e(v.name) + '</option>'; }).join('') + '</select></label><label class="f">Quantità (solo card singola)<input name="qty" type="number" min="1" value="1"></label></div>' +
       '<label class="f">Pagamento<select name="payment">' + options(['In attesa', 'Pagato'], 'In attesa') + '</select></label>' +
       '<label class="f">Scheda Google *<input name="gmaps" required></label>' +
       '<div class="r2"><label class="f">Nome *<input name="firstName" required></label><label class="f">Cognome<input name="lastName"></label></div>' +
