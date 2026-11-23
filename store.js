@@ -11,7 +11,7 @@
           { id: 'pack', name: 'Card singola', price: 30, min: 1, fixed: false },
           { id: 'uno', name: 'Pacchetto 2 card', price: 40, compare: 60, min: 1, fixed: true },
           { id: 'due', name: 'Pacchetto 4 card', price: 80, compare: 120, min: 1, fixed: true },
-          { id: 'cinque', name: 'Pacchetto 10 card', price: 200, compare: 300, min: 1, fixed: true }
+          { id: 'cinque', name: 'Pacchetto 10 card', price: 160, compare: 300, min: 1, fixed: true }
         ]
       },
       orders: [],
