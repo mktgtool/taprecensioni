@@ -6,7 +6,7 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { pack: 30, uno: 40, due: 80, cinque: 160 };
+  var VALUES = { pack: 30, uno: 40, due: 80, cinque: 200 };
   var NAMES = { pack: '1 card', uno: 'Pacchetto 2 card', due: 'Pacchetto 4 card', cinque: 'Pacchetto 10 card' };
 
   function store(kind, key, val) {
