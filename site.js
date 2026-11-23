@@ -6,8 +6,8 @@
     metaPixelId: '4574433882871297'
   };
   var WA = 'https://wa.me/393338074768?text=';
-  var VALUES = { pack: 30, uno: 34.9, due: 68.9, cinque: 149.9 };
-  var NAMES = { pack: '1 card', uno: '1+1 gratis (2 card)', due: '2+2 gratis (4 card)', cinque: '5+5 gratis (10 card)' };
+  var VALUES = { pack: 30, uno: 40, due: 80, cinque: 200 };
+  var NAMES = { pack: '1 card', uno: 'Pacchetto 2 card', due: 'Pacchetto 4 card', cinque: 'Pacchetto 10 card' };
 
   function store(kind, key, val) {
     try {

@@ -9,9 +9,9 @@
         status: 'Attivo',
         variants: [
           { id: 'pack', name: 'Card singola', price: 30, min: 1, fixed: false },
-          { id: 'uno', name: '1+1 gratis (2 card)', price: 34.9, compare: 60, min: 1, fixed: true },
-          { id: 'due', name: '2+2 gratis (4 card)', price: 68.9, compare: 120, min: 1, fixed: true },
-          { id: 'cinque', name: '5+5 gratis (10 card)', price: 149.9, compare: 300, min: 1, fixed: true }
+          { id: 'uno', name: 'Pacchetto 2 card', price: 40, compare: 60, min: 1, fixed: true },
+          { id: 'due', name: 'Pacchetto 4 card', price: 80, compare: 120, min: 1, fixed: true },
+          { id: 'cinque', name: 'Pacchetto 10 card', price: 200, compare: 300, min: 1, fixed: true }
         ]
       },
       orders: [],
